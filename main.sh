@@ -37,6 +37,8 @@ venv/bin/python ./importer-views.py
 # This command fails at the moment, use the script in view_sql to directly create a view in Postgres
 # psql -U $PG_DB_USERNAME -d $PG_DB_DATABASE -a -f view_sql.sql
 
+# Exclusive to OTC Database migration, THIS SHOULD NOT BE USED OTHERWISE
+venv/bin/python ./importer-fixer.py
 
 echo -e "\nMigration Done, please verify the New Postgresql Database $PG_DB_DATABASE for extra tweaks"
 
