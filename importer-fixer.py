@@ -4,8 +4,11 @@
 
 from sqlalchemy import create_engine, URL, text
 import os
+from timeit import default_timer
 
 if __name__ == "__main__":
+    start = default_timer()
+
     postgresql_connection_str = URL.create(
         drivername='postgresql+psycopg',
         username=os.environ['PG_DB_USERNAME'],
@@ -27,4 +30,5 @@ if __name__ == "__main__":
         conn.execute(query)
         conn.commit()
 
-    print("Additional Fixes implemented")
+    print("\n Additional Fixes implemented")
+    print("\n Execution Time: ",default_timer() - start)
