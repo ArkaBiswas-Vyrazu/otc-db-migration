@@ -30,5 +30,5 @@ if __name__ == "__main__":
         conn.execute(query)
         conn.commit()
 
-    print("\n Additional Fixes implemented")
-    print("\n Execution Time: ",default_timer() - start)
+    print("\nAdditional Fixes implemented")
+    print("\nExecution Time: ",default_timer() - start)

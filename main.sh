@@ -40,6 +40,12 @@ venv/bin/python ./importer-views.py
 # Exclusive to OTC Database migration, THIS SHOULD NOT BE USED OTHERWISE
 venv/bin/python ./importer-fixer.py
 
+# Option to delete output folder
+read -p "Keep output folder? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || rm -rf ./output
+
+# Option to delete venv folder
+read -p "Keep venv folder? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || rm -rf ./venv
+
 echo -e "\nMigration Done, please verify the New Postgresql Database $PG_DB_DATABASE for extra tweaks"
 
 deactivate
