@@ -6,7 +6,7 @@ from sqlalchemy.types import *
 # Otherwise, if you are not using keywords or strings with spaces at enum choices, you can define it as follows
 
 class StudentCoursesStatusStatusEnum(enum.Enum):
-    Eligible = 1
+    Eligble = 1 #Spelling mistake here....
     Progress = 2
     Completed = 3
 
@@ -622,6 +622,13 @@ custom_data_types = {
         'video': VARCHAR(length=500),
         'is_teacher': SMALLINT,
     },
+    'messages': {
+        'id': BigInteger,
+        'message': Text,
+        'entity_id': BigInteger,
+        'to_user_id': BigInteger,
+        'from_user_id': BigInteger,
+    },
     'migration': {
         'version': VARCHAR(length=180),
         'apply_time': Integer,
@@ -639,6 +646,15 @@ custom_data_types = {
         'is_read': Boolean,
         'created_at': TIMESTAMP(timezone=True),
         'updated_at': TIMESTAMP(timezone=True),
+    },
+    'news': {
+        'id': BigInteger,
+        'details': Text,
+        'status': SMALLINT,
+        'created_by': BigInteger,
+        'updated_by': BigInteger,
+        'created_at': BigInteger,
+        'updated_at': BigInteger,
     },
     'notes': {
         'title': VARCHAR(length=500),
@@ -716,6 +732,13 @@ custom_data_types = {
         'section_name': VARCHAR(length=250),
         'next_section': VARCHAR(length=100),
     },
+    'pinned_post': {
+        'id': BigInteger,
+        'post_id': BigInteger,
+        'pinned_by': BigInteger,
+        'created_at': BigInteger,
+        'updated_at': BigInteger,
+    },
     'products': {
         'product_code': VARCHAR(length=250),
         'product_name': VARCHAR(length=250),
@@ -747,7 +770,7 @@ custom_data_types = {
     },
     'ratings': {
         'review': Text,
-        'redirect_to_trustpilot': Boolean,
+        'redirect_to_trustpilot': SMALLINT,
         'created_at': TIMESTAMP(timezone=True),
         'updated_at': TIMESTAMP(timezone=True),
     },
@@ -868,6 +891,25 @@ custom_data_types = {
         'level': Integer,
         'reply_status': SMALLINT,
     },
+    'subscription': {
+        'id': BigInteger,
+        'user_id': BigInteger,
+        'entity_type': BigInteger,
+        'entity_id': BigInteger,
+        'status': SMALLINT,
+        'created_at': BigInteger,
+        'updated_at': BigInteger,
+    },
+    'subscription_alert': {
+        'id': BigInteger,
+        'user_id': BigInteger,
+        'entity_type': BIGINT,
+        'entiry_id': BIGINT,
+        'alert_message': Text,
+        'read_status': SMALLINT,
+        'created_at': BigInteger,
+        'updated_at': BigInteger,
+    },
     'system_notification': {
         'notification_id': VARCHAR(length=255),
         'entity': VARCHAR(length=255),
@@ -879,6 +921,13 @@ custom_data_types = {
         'email_sent_at': TIMESTAMP(timezone=True),
         'sms_sent_at': TIMESTAMP(timezone=True),
         'browser_notification_sent_at': TIMESTAMP(timezone=True),
+    },
+    'testimonials': {
+        'id': BigInteger,
+        'user_id': BigInteger,
+        'description': Text,
+        'link': Text,
+        'fb_link': Text,
     },
     'text_block': {
         'title': VARCHAR(length=200),
@@ -930,12 +979,28 @@ custom_data_types = {
         'need_to_change_username':  Boolean, 
         'from_third_party': Boolean, 
     },
+    'user_connection': {
+        'id': BigInteger,
+        'user_id': BigInteger,
+        'connections': Text,
+        'created_by': BigInteger,
+        'updated_by': BigInteger,
+        'created_at': BigInteger,
+        'updated_at': BigInteger,
+    },
     'user_connection_details': {
         'request_sent_or_received_time': TIMESTAMP(timezone=True),
         'request_accepted_or_approved_time': TIMESTAMP(timezone=True),
         'blocked_person': Integer, #Could use testing
         'request_cancelled_time': TIMESTAMP(timezone=True),
         'request_cancelled_user_id': BigInteger,
+    },
+    'user_email_verification_token': {
+        'id': BigInteger,
+        'user_id': BigInteger,
+        'token': Text,
+        'created_at': BigInteger,
+        'updated_at': BigInteger,
     },
     'user_market_timing_orientation': {
         'viewed_market_timings': VARCHAR(length=250),
@@ -967,6 +1032,18 @@ custom_data_types = {
     'user_posts': {
         'image': VARCHAR(length=250),
         'video': VARCHAR(length=255),
+    },
+    'user_posts_likes': {
+        'id': BigInteger,
+        'user_post_id': BigInteger,
+        'user_id': BigInteger,
+        'entity_type': BigInteger,
+        'like': SMALLINT,
+        'status': SMALLINT,
+        'created_by': BigInteger,
+        'updated_by': BigInteger,
+        'created_at': BigInteger,
+        'updated_at': BigInteger,
     },
     'user_profile': {
         'address': VARCHAR(length=500),

@@ -1,13 +1,19 @@
 #!/usr/bin/python3
 
-"""Purpose: [EXCLUSIVE TO THE OTC DATABASE] Adding additional fixes to the database"""
+"""
+    Purpose: Adding additional fixes to the database
+    NOTE: The fixes provided here are exclusive to the OTC Database
+"""
 
 from sqlalchemy import create_engine, URL, text
 import os
 from timeit import default_timer
+from dotenv import load_dotenv
 
 if __name__ == "__main__":
     start = default_timer()
+
+    load_dotenv()
 
     postgresql_connection_str = URL.create(
         drivername='postgresql+psycopg',
@@ -31,4 +37,4 @@ if __name__ == "__main__":
         conn.commit()
 
     print("\nAdditional Fixes implemented")
-    print("\nExecution Time: ",default_timer() - start)
+    print("Execution Time: ",default_timer() - start)

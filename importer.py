@@ -10,22 +10,23 @@ from custom_data_types import custom_data_types #Define any custom data types ne
 from timeit import default_timer
 
 # Default data_types 
+# This will be used if no definition is given in custom_data_types 
 data_types = {
-    'created_at': types.DateTime,
-    'updated_at': types.DateTime,
-    'expires_at': types.DateTime,
+    'created_at': types.TIMESTAMP(timezone=True),
+    'updated_at': types.TIMESTAMP(timezone=True),
+    'expires_at': types.TIMESTAMP(timezone=True),
     'user_id': types.BigInteger,
 }
 
 def sql_loader(df: pd.DataFrame, table_name: str, postgresql_connection: Engine, dtype: dict = data_types, file: TextIOWrapper = None):
     try:
-        df.to_sql(table_name, postgresql_connection, dtype=dtype, if_exists='replace',index=False)
+        df.to_sql(table_name, postgresql_connection, dtype=dtype, if_exists='replace',index=False, chunksize=1000)
     except ProgrammingError as e:
         print(f"Error encountered, switching to default data type definition for table {table_name}")
         if file is not None:
             file.write(f"\n{e}\n")
             file.write("***************************************\n")
-        df.to_sql(table_name, postgresql_connection, if_exists='replace',index=False)
+        df.to_sql(table_name, postgresql_connection, if_exists='replace',index=False,chunksize=1000)
 
 if __name__ == "__main__":
     execution_start = default_timer()

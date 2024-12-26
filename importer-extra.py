@@ -8,7 +8,6 @@ import os
 from io import TextIOWrapper
 from timeit import default_timer
 
-
 def make_identity(postgres_connection: Engine, table_name: str, serial_col: str = 'id'):
     """Sets up identity columns for given primary key columns"""
 
@@ -63,22 +62,72 @@ def make_sequence(postgres_connection: Engine, table_name: str, serial_col: str 
     except Exception as e:
         print(f"Error encountered while trying to add sequence to column {serial_col} of table {table_name}: {e}")
 
-
 def set_not_null(postgres_connection: Engine, table_metadata: Table):
     """Sets Columns in Postgresql Database to Not Null if they are Not Null in MySQL Database"""
     
     with postgres_connection.connect() as conn:
         for column in table_metadata.columns:
             if not column.nullable:
+                # Setting Column values from NULL to empty string if NULL values exist (this can happen when importing from csv files)
+                query = f'SELECT "{column.name}" FROM public.{table_metadata.name} WHERE "{column.name}" IS NULL'
+                result = conn.execute(text(query))
+                if len(result.fetchall()) > 0:
+                    print(f"WARNING: Possible null values in column {column.name} of table {table_metadata.name}")
+                    try:
+                        if str(column.type) != 'ENUM':
+                            query = f"UPDATE public.{table_metadata.name} SET {column.name} = '' WHERE {column.name} IS NULL"
+                        else:
+                            print("Enum detected, setting Null value to None string, change this in script if this is not working")
+                            query = f"UPDATE public.{table_metadata.name} SET {column.name} = 'None' WHERE {column.name} IS NULL"
+                        conn.execute(text(query))
+                        conn.commit()
+                        print(f"Null values changed to empty strings in column {column.name} of table {table_metadata.name}")
+                    except Exception as e:
+                        print(f"Error encountered while trying to change NULL values to empty string in column {column.name} for table {table_metadata.name}: {e}")
+                        conn.rollback()
+                        print("Successfully rolled back error query")
+
                 try:
-                    query = f"ALTER TABLE public.{table_metadata.name} ALTER COLUMN {column.name} SET NOT NULL"
+                    query = f'ALTER TABLE public.{table_metadata.name} ALTER COLUMN "{column.name}" SET NOT NULL'
                     conn.execute(text(query))
                     conn.commit()
                     print(f"Column {column.name} of table {table_metadata.name} set to NOT NULL")
+                
                 except Exception as e:
                     print(f"Error encountered while setting NOT NULL for column {column.name} of table {table_metadata.name}: {e}")
+                    conn.rollback()
+                    print("Successfully rolled back error query")
                     continue
 
+def set_defaults(postgres_connection: Engine, mysql_connection: Engine, table_name: str):
+    # There probably is a better way, but this way works for now
+
+    # Creating dictionary to map columns to any default values found
+    defaults = {}
+    with mysql_connection.connect() as conn:
+        query = f"SHOW FULL COLUMNS FROM {table_name}"
+        column_definitions = conn.execute(text(query)).fetchall()
+        for column_definition in column_definitions:
+            # In the results, default value is in index 5
+            if column_definition[5] is not None:
+                defaults[column_definition[0]] = column_definition[5]
+
+    excluded_defaults = ['CURRENT_TIMESTAMP']
+
+    if len(defaults) > 0:
+        with postgres_connection.connect() as conn:
+            for column_name, default_value in defaults.items():
+                try:
+                    query = f'ALTER TABLE public.{table_name} ALTER COLUMN {column_name} SET DEFAULT '
+                    query += f'{default_value}' if default_value.isnumeric() or default_value in excluded_defaults else f"'{default_value}'" 
+                    conn.execute(text(query))
+                    conn.commit()
+                    print(f"Column {column_name} of table {table_name} set to use default value {default_value}")
+                except Exception as e:
+                    print(f"Error encountered while setting default value {default_value} for column {column_name} of table {table_name}: {e}")
+                    conn.rollback()
+                    print("Successfully rolled back error query")
+                    continue
 
 def export_additional(mysql_connection: Engine, postgres_connection: Engine, metadata: MetaData, table_name: str, inspect_obj: Inspector = None):
     # Load the table schema from MySQL to get constraints
@@ -100,13 +149,19 @@ def export_additional(mysql_connection: Engine, postgres_connection: Engine, met
                 print(f"Primary Key Constraint {table_name}_pk added to table {table_name}")
             except Exception as e:
                 print(f"Error while setting primary key constraint for table {table_name}: {e}")
+                con.rollback()
+                print("Successfully rolled back error query")
+
 
         # Adding auto increment feature....
         if table_metadata.primary_key:
             for pk in table_metadata.primary_key.columns:
                 # Using Identity Columns
                 # Reference: https://stackoverflow.com/questions/55555547/how-can-i-change-an-existing-column-to-identity-in-postgresql-11-1
-                make_identity(postgres_connection, table_name, pk.name)
+                if str(pk.type) in ('INTEGER','BIGINT'):            
+                    make_identity(postgres_connection, table_name, pk.name)
+                else:
+                    print(f"Primary key {pk.name} of table {table_name} is not integer or big integer, not setting this as an identity column, please verify this: TYPE {pk.type}")
 
                 # # Also, using sequences, in case identity is not created successfully or any other errors
                 # # Reference: https://stackoverflow.com/questions/9490014/adding-serial-to-existing-column-in-postgres
@@ -126,6 +181,9 @@ def export_additional(mysql_connection: Engine, postgres_connection: Engine, met
                     print(f"Unique Key Constraint {table_name}_uq_{unique_constraint_name} added to table {table_name}")
                 except Exception as e:
                     print(f"Error encountered while trying to add unique key {unique_constraint_name} to table {table_name}: {e}")
+                    con.rollback()
+                    print("Successfully rolled back error query")
+
 
         # Keeping Note of failed foreign key and index imports
         fk_failed = []
@@ -150,6 +208,9 @@ def export_additional(mysql_connection: Engine, postgres_connection: Engine, met
                 print(f"Foreign key {source_column} -> {target_column} added to table {source_table}")
             except Exception as e:
                 print(f"Error adding foreign key: {e}")
+                con.rollback()
+                print("Successfully rolled back error query")
+                print("Reattempt will be made to add this foreign key after all tables have been setup")
                 fk_failed.append(fk)
 
         # Migrating other indexes (if any)
@@ -166,10 +227,16 @@ def export_additional(mysql_connection: Engine, postgres_connection: Engine, met
                 print(f"Index {table_name}_idx_{index.name.replace("-","_")} added to table {table_name}")
             except Exception as e:
                 print(f"Error adding index {index.name}: {e}")
+                con.rollback()
+                print("Successfully rolled back error query")
+                print("Reattempt will be made to add this index after all tables have been setup")
                 index_failed.append(index)
 
         # Setting Table Columns as Not Null
         set_not_null(postgres_connection, table_metadata)
+
+        # Setting Table Column Defaults if exists
+        set_defaults(postgres_connection, mysql_connection, table_name)
 
     return (fk_failed, index_failed)
 
@@ -206,6 +273,8 @@ def reattempt_export_additional(mysql_connection: Engine, postgres_connection: E
                 print(f"Foreign key {source_column} -> {target_column} added to table {source_table}")
             except Exception as e:
                 print(f"Error adding foreign key: {e}")
+                con.rollback()
+                print("Successfully rolled back error query")
                 if file is not None:
                     file.write(f"\n{e}\n")
                     file.write(f"\n**************************************************************************\n")
@@ -222,6 +291,8 @@ def reattempt_export_additional(mysql_connection: Engine, postgres_connection: E
                 print(f"Index {table_name}_idx_{index.name.replace("-","_")} added to table {table_name}")
             except Exception as e:
                 print(f"Error adding index {index.name}: {e}")
+                con.rollback()
+                print("Successfully rolled back error query")
                 if file is not None:
                     file.write(f"\n{e}\n")
                     file.write(f"\n**************************************************************************\n")
@@ -273,7 +344,7 @@ if __name__ == "__main__":
         if len(fk_failed) > 0 or len(index_failed) > 0:
             failed_tracker[table_name] = (fk_failed, index_failed)
 
-    print(failed_tracker.keys())
+    print("\nReattempting Foreign Key and Index Exports for the following tables:",",".join(list(failed_tracker.keys())),end="\n\n")
 
     reattempt_error_status = False
 
