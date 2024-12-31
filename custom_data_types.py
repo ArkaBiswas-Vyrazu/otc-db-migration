@@ -770,7 +770,7 @@ custom_data_types = {
     },
     'ratings': {
         'review': Text,
-        'redirect_to_trustpilot': SMALLINT,
+        'redirect_to_trustpilot': Boolean,
         'created_at': TIMESTAMP(timezone=True),
         'updated_at': TIMESTAMP(timezone=True),
     },
