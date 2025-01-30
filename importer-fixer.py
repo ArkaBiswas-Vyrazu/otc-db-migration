@@ -36,5 +36,24 @@ if __name__ == "__main__":
         conn.execute(query)
         conn.commit()
 
+        ## User Profile Settings Fix
+        # Alter Enums to use the empty string value
+        enum_cols = ['shown_sat_score_for_me', 'shown_friends_post_for_me', 'show_my_sat_score_to_others', 'show_my_post_to_others']
+
+        for enum_col in enum_cols:
+            query = text(f"ALTER TYPE {os.environ['PG_DB_DATABASE']}.public.user_profile_settings_{enum_col}_enum ADD value ''")
+            conn.execute(query)
+            conn.commit()
+
+            with create_engine(URL.create(drivername='mysql+pymysql', username=os.environ['MYSQL_DB_USERNAME'], password=os.environ['MYSQL_DB_PASSWORD'], 
+                                  host=os.environ['MYSQL_DB_HOST'], port=os.environ['MYSQL_DB_PORT'], database=os.environ['MYSQL_DB_DATABASE'])).connect() as con:
+                query = text(f"SELECT id from user_profile_settings WHERE {enum_col}=''")
+                results = con.execute(query)
+
+            for result in results.fetchall():
+                query = text(f"UPDATE {os.environ['PG_DB_DATABASE']}.public.user_profile_settings SET {enum_col}='' WHERE id={result[0]}")
+                conn.execute(query)
+                conn.commit()
+
     print("\nAdditional Fixes implemented")
     print("Execution Time: ",default_timer() - start)

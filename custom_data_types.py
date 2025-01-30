@@ -136,14 +136,14 @@ custom_data_types = {
         'id': BigInteger,
         'password': VARCHAR(length=128),
         'last_login': TIMESTAMP(timezone=True),
-        'is_superuser': SMALLINT,
+        'is_superuser': Boolean,
         'username': VARCHAR(length=150),
         'first_name': VARCHAR(length=150),
         'last_name': VARCHAR(length=150),
         'email': VARCHAR(length=254),
-        'is_staff': SMALLINT,
-        'is_active': SMALLINT,
-        'date_joined': SMALLINT,
+        'is_staff': Boolean,
+        'is_active': Boolean,
+        'date_joined': TIMESTAMP(timezone=True),
     },
     'auth_rule': {
         'name': VARCHAR(length=64),
@@ -446,6 +446,7 @@ custom_data_types = {
         'image': VARCHAR(length=250),
         'video': VARCHAR(length=250),
         'is_shared_post': SMALLINT,
+        'is_approved': INTEGER, #Does not exist yet
     },
     'indicator_packages': {
         'package_name': VARCHAR(length=100),
@@ -561,6 +562,8 @@ custom_data_types = {
         'short_description': VARCHAR(length=500),
         'image': VARCHAR(length=150),
         'show_date': Date,
+        'classroom_webinar_id': BigInteger, # Does not exist yet
+        'classroom_webinar_status': INTEGER, # Does nt exist yet
     },
     'market_timing_orientation_online_form': {
         'id': BigInteger,
@@ -1032,6 +1035,7 @@ custom_data_types = {
     'user_posts': {
         'image': VARCHAR(length=250),
         'video': VARCHAR(length=255),
+        'is_approved': INTEGER, # Does not exist yet
     },
     'user_posts_likes': {
         'id': BigInteger,
@@ -1062,14 +1066,18 @@ custom_data_types = {
     },
     'user_profile_settings': {
         'show_my_username_to_others': VARCHAR(length=1),
-        'shown_sat_score_for_me': Enum(enum.Enum('user_profile_settings_shown_sat_score_for_me_enum', {'All': 1, 'Connections': 2, 'null': 3, 'None': 4})),
-        'shown_friends_post_for_me': Enum(enum.Enum('user_profile_settings_shown_friends_post_for_me_enum', {'All': 1, 'Connections': 2, 'null': 3, 'None': 4})),
+        # 'shown_sat_score_for_me': Enum(enum.Enum('user_profile_settings_shown_sat_score_for_me_enum', {'All': 1, 'Connections': 2, 'null': 3, 'None': 4})),
+        'shown_sat_score_for_me': Enum(enum.Enum('user_profile_settings_shown_sat_score_for_me_enum', {'All': 1, 'Connections': 2, 'None': 3})),
+        # 'shown_friends_post_for_me': Enum(enum.Enum('user_profile_settings_shown_friends_post_for_me_enum', {'All': 1, 'Connections': 2, 'null': 3, 'None': 4})),
+        'shown_friends_post_for_me': Enum(enum.Enum('user_profile_settings_shown_friends_post_for_me_enum', {'All': 1, 'Connections': 2, 'None': 3})),
         'shown_calender': Enum(enum.Enum('user_profile_settings_shown_calender_enum', {'All': 0, 'None': 1})),
         'shown_daily_market_overview': VARCHAR(length=1),
         'shown_news_alert': VARCHAR(length=1),
         'shown_otc_new_joins': VARCHAR(length=1),
-        'show_my_sat_score_to_others': Enum(enum.Enum('user_profile_settings_show_my_sat_score_to_others_enum', {'All': 1, 'Connections': 2, 'null': 3, 'None': 4})),
-        'show_my_post_to_others': Enum(enum.Enum('user_profile_settings_show_my_post_to_others_enum', {'All': 1, 'Connections': 2, 'null': 3, 'None': 4})),
+        # 'show_my_sat_score_to_others': Enum(enum.Enum('user_profile_settings_show_my_sat_score_to_others_enum', {'All': 1, 'Connections': 2, 'null': 3, 'None': 4})),
+        'show_my_sat_score_to_others': Enum(enum.Enum('user_profile_settings_show_my_sat_score_to_others_enum', {'All': 1, 'Connections': 2, 'None': 3})),
+        # 'show_my_post_to_others': Enum(enum.Enum('user_profile_settings_show_my_post_to_others_enum', {'All': 1, 'Connections': 2, 'null': 3, 'None': 4})),
+        'show_my_post_to_others': Enum(enum.Enum('user_profile_settings_show_my_post_to_others_enum', {'All': 1, 'Connections': 2, 'None': 3})),
         'sharing_sat_score': VARCHAR(length=1),
         'sharing_posts': VARCHAR(length=1),
         'browser_notification': VARCHAR(length=1),
