@@ -173,7 +173,7 @@ def export_additional(mysql_connection: Engine, postgres_connection: Engine, met
                 unique_constraint_name = unique_constraint.get('name')
                 unique_constraint_columns = unique_constraint.get('column_names')
 
-                query = text(f"ALTER TABLE public.{table_name} ADD CONSTRAINT {table_name}_uq_{unique_constraint_name} UNIQUE ({",".join(unique_constraint_columns)})")
+                query = text(f"ALTER TABLE public.{table_name} ADD CONSTRAINT {table_name}_uq_{unique_constraint_name} UNIQUE ({','.join(unique_constraint_columns)})")
 
                 try:
                     con.execute(query)

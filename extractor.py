@@ -51,22 +51,26 @@ def fixTimeFields(table_name: str):
 def fixTimeStampFields(table_name: str):
     file_path = f"./output/{table_name}.csv"
 
-    rows = []
-    for row in csv.reader(open(file_path)):
-        rows.append(row)
+    try:
+        rows = []
+        for row in csv.reader(open(file_path)):
+            rows.append(row)
 
-    detected = False
-    for row in rows:
-        for index in range(len(row)):
-            if '0000-00-00 00:00:00' in row['index']:
-                detected = True
-                row[index] = ''
+        detected = False
+        for row in rows:
+            for index in range(len(row)):
+                if '0000-00-00 00:00:00' in row[index]:
+                    detected = True
+                    row[index] = ''
 
-    writer = csv.writer(open(file_path, 'w'))
-    writer.writerows(rows)
+        writer = csv.writer(open(file_path, 'w'))
+        writer.writerows(rows)
 
-    if detected:
-        print(f'Fixed Timestamp Fields in table {table_name}')
+        if detected:
+            print(f'Fixed Timestamp Fields in table {table_name}')
+    except csv.Error as e:
+        print(f'Warning: Table {table_name} was not able to load csv, please check if this needs to be addressed')
+        print(f'Error encountered while trying to check for timestamp errors in table {table_name}: {repr(e)}')
 
 if __name__ == "__main__":
     execution_start = default_timer()
@@ -100,6 +104,7 @@ if __name__ == "__main__":
 
     print(f"Extracting tables from database {environ['MYSQL_DB_DATABASE']}")
     table_names = metadata.tables.keys()
+    print('Table names extracted: ',table_names)
     for table_name in table_names:
         query = f"SELECT * from {table_name}"
         df = pd.read_sql(query, mysql_connection)

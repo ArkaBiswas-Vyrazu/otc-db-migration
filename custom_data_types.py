@@ -248,6 +248,7 @@ custom_data_types = {
         'size_kb': Float(9,2),
     },
     'contact_us': {
+        'id': BigInteger,
         'name': VARCHAR(length=250),
         'email': VARCHAR(length=250),
         'subject': VARCHAR(length=100),
