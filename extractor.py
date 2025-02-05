@@ -47,6 +47,27 @@ def fixTimeFields(table_name: str):
     
     print(f"Fixed Time Fields in table {table_name}")
 
+
+def fixTimeStampFields(table_name: str):
+    file_path = f"./output/{table_name}.csv"
+
+    rows = []
+    for row in csv.reader(open(file_path)):
+        rows.append(row)
+
+    detected = False
+    for row in rows:
+        for index in range(len(row)):
+            if '0000-00-00 00:00:00' in row['index']:
+                detected = True
+                row[index] = ''
+
+    writer = csv.writer(open(file_path, 'w'))
+    writer.writerows(rows)
+
+    if detected:
+        print(f'Fixed Timestamp Fields in table {table_name}')
+
 if __name__ == "__main__":
     execution_start = default_timer()
 
@@ -90,6 +111,9 @@ if __name__ == "__main__":
         # Filtering the time problem (Use the custom_data_types file for this feature) 
         if checkForTimeFields(table_name):
             fixTimeFields(table_name) 
+
+        # Fixing the 0000-00-00 00:00:00 error
+        fixTimeStampFields(table_name)
 
     print(f"Successfully exported tables to csv files from Database {environ['MYSQL_DB_DATABASE']}. Check out the output folder")
     print("Table Export Execution Time: ",default_timer()-execution_start)

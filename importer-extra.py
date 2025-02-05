@@ -144,7 +144,7 @@ def export_additional(mysql_connection: Engine, postgres_connection: Engine, met
             for pk_col in pk_cols:
                 pk_name += f"{pk_col}_"
             try:
-                con.execute(text(f"ALTER TABLE public.{table_name} ADD CONSTRAINT {pk_name[:-1]} PRIMARY KEY ({",".join(pk_cols)})"))
+                con.execute(text(f"ALTER TABLE public.{table_name} ADD CONSTRAINT {pk_name[:-1]} PRIMARY KEY ({','.join(pk_cols)})"))
                 con.commit()
                 print(f"Primary Key Constraint {table_name}_pk added to table {table_name}")
             except Exception as e:
@@ -217,14 +217,14 @@ def export_additional(mysql_connection: Engine, postgres_connection: Engine, met
         # Should check if extra indexes are being created to save space
         for index in table_metadata.indexes:
             index_columns = ', '.join(index.columns.keys())
-            query = f"CREATE INDEX {table_name}_idx_{index.name.replace("-","_")} ON public.{table_name} ({index_columns})"
+            query = f"CREATE INDEX {table_name}_idx_{index.name.replace('-','_')} ON public.{table_name} ({index_columns})"
             if index.unique:
-                query = f"CREATE UNIQUE INDEX {table_name}_idx_{index.name.replace("-","_")} ON public.{table_name} ({index_columns})"
+                query = f"CREATE UNIQUE INDEX {table_name}_idx_{index.name.replace('-','_')} ON public.{table_name} ({index_columns})"
             sql = text(query)
             try:
                 con.execute(sql)
                 con.commit()
-                print(f"Index {table_name}_idx_{index.name.replace("-","_")} added to table {table_name}")
+                print(f"Index {table_name}_idx_{index.name.replace('-','_')} added to table {table_name}")
             except Exception as e:
                 print(f"Error adding index {index.name}: {e}")
                 con.rollback()
@@ -284,11 +284,11 @@ def reattempt_export_additional(mysql_connection: Engine, postgres_connection: E
         # Reattempting additional index exports 
         for index in index_failed:
             index_columns = ', '.join(index.columns.keys())
-            sql = text(f"CREATE INDEX {table_name}_idx_{index.name.replace("-","_")} ON public.{table_name} ({index_columns})")
+            sql = text(f"CREATE INDEX {table_name}_idx_{index.name.replace('-','_')} ON public.{table_name} ({index_columns})")
             try:
                 con.execute(sql)
                 con.commit()
-                print(f"Index {table_name}_idx_{index.name.replace("-","_")} added to table {table_name}")
+                print(f"Index {table_name}_idx_{index.name.replace('-','_')} added to table {table_name}")
             except Exception as e:
                 print(f"Error adding index {index.name}: {e}")
                 con.rollback()
