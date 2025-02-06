@@ -2,11 +2,13 @@
 source .env
 
 echo -e "\nDropping and Creating new Database $MYSQL_DB_DATABASE"
-sudo mysql --defaults-extra-file=./mysql.config -e "DROP DATABASE IF EXISTS $MYSQL_DB_DATABASE; CREATE DATABASE $MYSQL_DB_DATABASE; USE $MYSQL_DB_DATABASE; source $MYSQL_DATA_BACKUP_PATH;"
+if [ ! -f ./mysql.config ]; then
+    mysql -u $MYSQL_DB_USERNAME --password=$MYSQL_DB_PASSWORD -e "DROP DATABASE IF EXISTS $MYSQL_DB_DATABASE; CREATE DATABASE $MYSQL_DB_DATABASE; USE $MYSQL_DB_DATABASE; source $MYSQL_DATA_BACKUP_PATH;"
+else
+    mysql --defaults-extra-file=./mysql.config -e "DROP DATABASE IF EXISTS $MYSQL_DB_DATABASE; CREATE DATABASE $MYSQL_DB_DATABASE; USE $MYSQL_DB_DATABASE; source $MYSQL_DATA_BACKUP_PATH;"
+fi
 
 # Use this if not using th mysql.config file
-# sudo mysql --password=$MYSQL_DB_PASSWORD -e "DROP DATABASE IF EXISTS $MYSQL_DB_DATABASE; CREATE DATABASE $MYSQL_DB_DATABASE; USE $MYSQL_DB_DATABASE; source $MYSQL_DATA_BACKUP_PATH;"
-
 # # Could look into automating this too?
 # # Note: Add any tables that need to be removed too, or you could just edit the MySQL dump script directly
 # declare -a tables_depreceated=(

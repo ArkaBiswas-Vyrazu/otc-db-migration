@@ -1,11 +1,19 @@
 # Exports CSV Files from MySQL to Postgresql Database
 
-# Restarting MySQL Database (Comment out if not needed)
-echo -e "\nRestarting MySQL Server"
-sudo systemctl restart mysql
+echo -e "\nMySQL Database will only be used to read data, constraints and indexes. The database will not be affected in any way"
+echo -e "If you feel unsafe about this, you can optionally use a mysqldump file, which will create a copy of the same MySQL database locally"
+echo -e "WARNING: Just make sure that there are no other MySQL databases of the same name as provided in the .env locally, as it would drop it to create the new database.\n"
 
-# # Recreating MySQL Database (Comment out if not needed)
-/bin/bash ./otc_db_backup.sh
+read -p "Are you using a mysqldump file? Make sure the mysqldumpfile path has been configured properly in the .env file (Y|N): " confirm
+
+if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+    # Restarting MySQL Database (Comment out if not needed)
+    echo -e "\nRestarting MySQL Server"
+    sudo systemctl restart mysql
+
+    # # Recreating MySQL Database (Comment out if not needed)
+    /bin/bash ./mysql_local.sh
+fi
 
 # # Creating virtual environment (Comment out if not needed)
 echo -e "\nSetting up New Virtual Environment"
@@ -15,12 +23,20 @@ venv/bin/python -m pip install -r requirements.txt
 
 source .env
 
-echo -e "\nRestarting Postgresql Server"
-sudo systemctl restart postgresql
-echo -e "\nDropping Database $PG_DB_DATABASE"
-dropdb $PG_DB_DATABASE
-echo -e "\nCreating Database $PG_DB_DATABASE"
-createdb $PG_DB_DATABASE
+echo -e "\nBefore importing to the official Postgres Server, you can optionally test it locally if you feel you need to check it is working fine or not"
+echo -e "In this case, a Postgres database of the same name will be created locally and the migration would then take place there"
+echo -e "For this, change the PG_DB_HOST to localhost and PG_DB_PORT to 5432 in the .env file"
+echo -e "WARNING: If there are any existing databases of the same name locally, that database will be dropped before creation."
+read -p "Do you want to test Postgres Migration locally first? (Y|N): " confirm
+
+if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+    echo -e "\nRestarting Postgresql Server"
+    sudo systemctl restart postgresql
+    echo -e "\nDropping Database $PG_DB_DATABASE"
+    dropdb $PG_DB_DATABASE
+    echo -e "\nCreating Database $PG_DB_DATABASE"
+    createdb $PG_DB_DATABASE
+fi
 
 echo -e "\nExporting CSV Files from MySQL Database: $MYSQL_DB_DATABASE"
 venv/bin/python ./extractor.py
@@ -45,6 +61,19 @@ read -p "Keep output folder? (Y/N): " confirm && [[ $confirm == [yY] || $confirm
 
 # Option to delete venv folder
 read -p "Keep venv folder? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || rm -rf ./venv
+
+# For security purposes, unsetting the .env values
+echo -e "Removing loaded .env values" 
+unset MYSQL_DB_USERNAME
+unset MYSQL_DB_PASSWORD
+unset MYSQL_DB_HOST
+unset MYSQL_DB_DATABASE
+unset MYSQL_DB_PORT
+unset PG_DB_USERNAME
+unset PG_DB_PASSWORD
+unset PG_DB_HOST
+unset PG_DB_DATABASE
+unset PG_DB_PORT
 
 echo -e "\nMigration Done, please verify the New Postgresql Database $PG_DB_DATABASE for extra tweaks"
 

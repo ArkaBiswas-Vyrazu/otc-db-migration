@@ -55,5 +55,10 @@ if __name__ == "__main__":
                 conn.execute(query)
                 conn.commit()
 
+        ## Redirect_to_trustpilot Fix
+        query = text(f"ALTER TABLE {os.environ['PG_DB_DATABASE']}.public.ratings ALTER COLUMN redirect_to_trustpilot SET DEFAULT True")
+        conn.execute(query)
+        conn.commit()        
+
     print("\nAdditional Fixes implemented")
     print("Execution Time: ",default_timer() - start)
