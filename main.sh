@@ -1,4 +1,6 @@
 # Exports CSV Files from MySQL to Postgresql Database
+echo -e "\nWelcome to the migrator. This will help you migrate your MySQL Database to a Postgresql Version."
+echo -e "IMPORTANT NOTE:- IF YOU ARE USING VIEWS PLEASE MAKE SURE YOU HAVE USED THE CORRECT DATABASE NAMES"
 
 echo -e "\nMySQL Database will only be used to read data, constraints and indexes. The database will not be affected in any way"
 echo -e "If you feel unsafe about this, you can optionally use a mysqldump file, which will create a copy of the same MySQL database locally"
@@ -46,6 +48,21 @@ venv/bin/python ./importer.py
 
 echo -e "\nExporting Constraints and Indexes from MySQL Database to Postgresql Database"
 venv/bin/python ./importer-extra.py
+
+echo -e "\nAre you using views in the MySQL Database? If that's the case you need to set it up manually. Refer to the README for more details"
+read -p "Confirm (Y|N): " confirm
+
+if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+    echo -e "\nExporting View Definition from MySQL Database to Postgresql Database"
+    venv/bin/python ./importer-views.py
+fi
+
+# Any additional fixes like correcting field values, ensuring proper data types, etc
+read -p "Are there any additional fixes that you may wish to use? Refer to the README for more details. Confirm (Y|N): " confirm
+if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+    echo -e "\nAdding Extra Fixes to Postgresql Database"
+    venv/bin/python ./importer-fixer.py
+fi
 
 # Option to delete output folder
 read -p "Keep output folder? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || rm -rf ./output

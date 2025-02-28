@@ -340,7 +340,9 @@ if __name__ == "__main__":
     failed_tracker = {} # In case foreign key and index exports are not valid at the beginning
 
     for table_name in metadata.tables.keys():
+        print(f"\nExporting Additional Metadata for table {table_name}")
         fk_failed, index_failed = export_additional(mysql_connection, postgres_connection, metadata, table_name, inspect_obj)
+        print(f"Additional Metadata for table {table_name} has been exported",end="\n")
         if len(fk_failed) > 0 or len(index_failed) > 0:
             failed_tracker[table_name] = (fk_failed, index_failed)
 

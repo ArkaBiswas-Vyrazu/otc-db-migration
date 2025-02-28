@@ -18,9 +18,9 @@ locally and use that to migrate to the Postgres Database. In this case then, mak
 4.  Run the main.sh script using the command <code>./main.sh</code>
     If you need to record output, you can skip the prompts by using the command:
     
-        printf '%s\n' no no yes yes | ./main.sh &> output.log
+        printf '%s\n' no no no no yes yes | ./main.sh &> output.log
 
-    This command assumes that no mysqldumpfile has been provided, and a local Postgres database would not be created, and you want to keep the output folder and the venv folder respectively.
+    This command **assumes** that **no mysqldumpfile has been provided**, **a local Postgres database would not be created**, **you have no views definitions defined**, **you have no extra fixes defined**, and **you want to keep the output folder and the venv folder** respectively.
 
 ## Additional Notes
 
