@@ -3,7 +3,7 @@
 # Purpose: To extract MySQL Database tables into CSV Files
 
 from sqlalchemy import create_engine, MetaData, URL 
-from sqlalchemy.types import Time
+from sqlalchemy.types import Time, TIME
 import pandas as pd
 from dotenv import load_dotenv
 import os
@@ -18,7 +18,7 @@ def checkForTimeFields(table_name: str):
 
     time_field_exists = False
     for field in custom_data_types[table_name]:
-        if custom_data_types[table_name][field] == Time:
+        if custom_data_types[table_name][field] in (Time, TIME):
             time_field_exists = True
 
     if not time_field_exists:
@@ -59,7 +59,7 @@ def fixTimeStampFields(table_name: str):
         detected = False
         for row in rows:
             for index in range(len(row)):
-                if '0000-00-00 00:00:00' in row[index]:
+                if '0000-00-00 00:00:00' in row[index] or '0000-00-00' in row[index]:
                     detected = True
                     row[index] = ''
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     table_names = metadata.tables.keys()
     print('Table names extracted: ',table_names)
     for table_name in table_names:
-        query = f"SELECT * from {table_name}"
+        query = f"SELECT * from `{table_name}`"
         df = pd.read_sql(query, mysql_connection)
         output_path = f'output/{table_name}.csv'
         print(f"Writing csv output to file at {output_path} for table {table_name}")

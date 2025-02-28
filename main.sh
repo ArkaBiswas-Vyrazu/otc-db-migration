@@ -47,15 +47,6 @@ venv/bin/python ./importer.py
 echo -e "\nExporting Constraints and Indexes from MySQL Database to Postgresql Database"
 venv/bin/python ./importer-extra.py
 
-# Exclusive to OTC Database migration, THIS SHOULD NOT BE USED OTHERWISE
-# echo -e "\nExporting View Definition from MySQL Database to Postgresql Database"
-venv/bin/python ./importer-views.py
-# This command fails at the moment, use the script in view_sql to directly create a view in Postgres
-# psql -U $PG_DB_USERNAME -d $PG_DB_DATABASE -a -f view_sql.sql
-
-# Any additional fixes like correcting field values, ensuring proper data types, etc
-venv/bin/python ./importer-fixer.py
-
 # Option to delete output folder
 read -p "Keep output folder? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || rm -rf ./output
 
