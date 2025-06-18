@@ -177,7 +177,7 @@ class Caser:
         for exception in exceptions:
             while exception in string:
                 # To account for multiple instances of the same exception
-                next_index = len([... for exc in exceptions_map if exc in exception]) + 1
+                next_index = len([... for exc in exceptions_map if exception in exc]) + 1
                 exceptions_map[f"{exception}_{next_index}"] = string.find(exception)
                 string = (
                     string
