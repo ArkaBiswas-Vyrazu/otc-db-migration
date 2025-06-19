@@ -262,7 +262,7 @@ def checkUniqueConstraints(inspect_obj: Inspector, table_name: str) -> bool:
 
 def reattempt_export_additional(mysql_connection: Engine, postgres_connection: Engine, metadata: MetaData, 
                                 table_name: str, fk_failed: list[ForeignKey], index_failed: list[Index], file: TextIOWrapper = None):
-    table_metadata = Table(table_name, metadata, autoload_with=mysql_connection)
+    # table_metadata = Table(table_name, metadata, autoload_with=mysql_connection)
 
     print(f"Reattempting foreign key and index exports for table {table_name}")
 
@@ -270,7 +270,8 @@ def reattempt_export_additional(mysql_connection: Engine, postgres_connection: E
 
     with postgres_connection.connect() as con:
         # Reattempting foreign key exports
-        for index, fk in enumerate(fk_failed):
+        # for index, fk in enumerate(fk_failed):
+        for fk in fk_failed:
             # Get the source and target tables for foreign keys
             source_table = fk.parent.table.name
             target_table = fk.column.table.name
@@ -278,9 +279,10 @@ def reattempt_export_additional(mysql_connection: Engine, postgres_connection: E
             source_column = fk.parent.name
             on_delete = fk.ondelete if fk.ondelete is not None else 'RESTRICT'
             on_update = fk.onupdate if fk.onupdate is not None else 'RESTRICT'
-            
+
             # Construct the foreign key constraint SQL
-            sql = text(f"ALTER TABLE \"{source_table}\" ADD CONSTRAINT fk_{source_table}_{target_table}_{index} FOREIGN KEY (\"{source_column}\") REFERENCES public.\"{target_table}\"(\"{target_column}\") ON DELETE {on_delete} ON UPDATE {on_update}")
+            # sql = text(f"ALTER TABLE \"{source_table}\" ADD CONSTRAINT fk_{source_table}_{target_table}_{index} FOREIGN KEY (\"{source_column}\") REFERENCES public.\"{target_table}\"(\"{target_column}\") ON DELETE {on_delete} ON UPDATE {on_update}")
+            sql = text(f"ALTER TABLE \"{source_table}\" ADD CONSTRAINT fk_{source_table}_{target_table} FOREIGN KEY (\"{source_column}\") REFERENCES public.\"{target_table}\"(\"{target_column}\") ON DELETE {on_delete} ON UPDATE {on_update}")
 
             try:
                 con.execute(sql)
@@ -358,7 +360,13 @@ if __name__ == "__main__":
 
     for table_name in metadata.tables.keys():
         print(f"\nExporting Additional Metadata for table {table_name}")
-        fk_failed, index_failed = export_additional(mysql_connection, postgres_connection, metadata, table_name, inspect_obj)
+        fk_failed, index_failed = export_additional(
+            mysql_connection,
+            postgres_connection,
+            metadata,
+            table_name,
+            inspect_obj
+        )
         print(f"Additional Metadata for table {table_name} has been exported",end="\n")
         if len(fk_failed) > 0 or len(index_failed) > 0:
             failed_tracker[table_name] = (fk_failed, index_failed)
@@ -373,7 +381,15 @@ if __name__ == "__main__":
     # Reattempting to reimport foreign keys after initial failure
     if len(failed_tracker) > 0:
         for table_name in failed_tracker.keys():
-            status = reattempt_export_additional(mysql_connection,postgres_connection,metadata,table_name,failed_tracker[table_name][0],failed_tracker[table_name][1],file)
+            status = reattempt_export_additional(
+                mysql_connection,
+                postgres_connection,
+                metadata,
+                table_name,
+                failed_tracker[table_name][0],
+                failed_tracker[table_name][1],
+                file
+            )
             if status and not reattempt_error_status:
                 reattempt_error_status = True
 
